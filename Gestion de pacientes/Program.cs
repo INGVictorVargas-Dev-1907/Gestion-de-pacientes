@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the conection sqlserver.
-builder.Services.AddDbContext<HospitalDbContext>(options => 
+builder.Services.AddDbContext<HospitalDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionDB"))
 );
 
@@ -13,18 +13,20 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
 
-var app = builder.Build();
-
-// Redirigir a la documentacion swagger al iniciar la aplicacion sin la ruta raiz
-app.Use(async (context, next) =>
+//DEFINIR LA POLÍTICA CORS ***
+builder.Services.AddCors(options =>
 {
-    if (context.Request.Path == "/")
-    {
-        context.Response.Redirect("/swagger/index.html", permanent: false);
-    }
-    await next();
+    options.AddPolicy("AllowSpecificOrigin",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:4200")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
 });
 
+
+var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -35,6 +37,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowSpecificOrigin");
 
 app.UseAuthorization();
 
